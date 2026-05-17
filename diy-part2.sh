@@ -13,6 +13,7 @@ sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/M
 # ==================== 注入你的私人定制配置 ====================
 # 原理：我们通过创建 99-custom-settings 脚本，让路由器在刷机后第一次开机时自动执行这些配置。
 mkdir -p package/base-files/files/etc/uci-defaults
+
 cat << "EOF" > package/base-files/files/etc/uci-defaults/99-custom-settings
 #!/bin/sh
 
@@ -25,27 +26,25 @@ uci set network.wan.username='637143646974'
 uci set network.wan.password='888888'
 uci commit network
 
-# 3. 设置 WiFi 名称、密码并默认开启 (OpenWrt默认是关闭WiFi的)
-# 遍历寻找所有的无线网络接口
-for iface in $(uci show wireless | grep '=wifi-iface' | cut -d'.' -f2 | cut -d'=' -f1); do
-    device=$(uci get wireless.$iface.device)
-    band=$(uci get wireless.$device.band)
-    
-    # 智能判断频段：如果是 2.4G 频段，则命名为 2.4G，否则命名为 5G
-    if echo "$band" | grep -qiE "2g|2.4g|b|g"; then
-        uci set wireless.$iface.ssid='OpenWrt_2.4G'
-    else
-        uci set wireless.$iface.ssid='OpenWrt_5G'
-    fi
-    
-    # 设置加密方式和 WiFi 密码
-    uci set wireless.$iface.encryption='psk2+ccmp'
-    uci set wireless.$iface.key='19851129z'
-    
-    # 启用对应的物理无线网卡
-    uci set wireless.$device.disabled='0'
-done
+# 3. 设置 WiFi 名称、密码并默认开启（已优化 2.4G / 5G 分离，更稳定）
+# 启用两个无线射频
+uci set wireless.radio0.disabled='0'
+uci set wireless.radio1.disabled='0'
+
+# 2.4G 配置
+uci set wireless.default_radio0.ssid='OpenWrt_2.4G'
+uci set wireless.default_radio0.encryption='psk2+ccmp'
+uci set wireless.default_radio0.key='19851129z'
+
+# 5G 配置
+uci set wireless.default_radio1.ssid='OpenWrt_5G'
+uci set wireless.default_radio1.encryption='psk2+ccmp'
+uci set wireless.default_radio1.key='19851129z'
+
+# 提交并立即生效
 uci commit wireless
+wifi reload
+echo "WiFi 配置完成：2.4G → OpenWrt_2.4G | 5G → OpenWrt_5G"
 
 # 4. 放行 Tailscale 通信端口 (41641)
 uci add firewall rule
@@ -60,11 +59,11 @@ uci commit firewall
 /etc/init.d/network restart
 wifi reload
 
-# 退出代码必须为 0，这样系统执行完后会自动删除此脚本，以后重启不再重复执行
+# 退出代码必须为 0，这样系统执行完后会自动删除此脚本
 exit 0
 EOF
 
 # 给生成的脚本赋予可执行权限
 chmod +x package/base-files/files/etc/uci-defaults/99-custom-settings
 
-echo "diy-part2.sh 执行完成：已成功注入后台密码、宽带拨号、WiFi 定制以及 Tailscale 防火墙规则！"
+echo "diy-part2.sh 执行完成：已成功注入后台密码、宽带拨号、WiFi（2.4G/5G分离）、Tailscale 防火墙规则！"
