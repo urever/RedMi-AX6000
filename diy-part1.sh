@@ -3,8 +3,9 @@
 
 # 仅添加 Lucky 源码（HomeProxy官方源自带，切勿在此重复添加）
 git clone https://github.com/gdy666/luci-app-lucky.git package/luci-app-lucky
-
+git clone https://github.com/jjm2473/OpenAppFilter.git package/luci-app-oaf
 # 给权限
 chmod -R 755 ./package/luci-app-lucky/*
+chmod -R 755 ./package/luci-app-oaf/*
 
-echo "diy-part1.sh 执行完成：已添加 Lucky。"
+echo "diy-part1.sh 执行完成：已添加 Lucky、oaf。"
