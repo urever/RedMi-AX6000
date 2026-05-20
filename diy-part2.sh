@@ -2,7 +2,7 @@
 # diy-part2.sh: OpenWrt DIY script part 2 (After Update feeds)
 
 # 修改默认 IP、主机名、主题
-sed -i 's/192.168.1.1/192.168.8.1/g' package/base-files/files/bin/config_generate
+sed -i 's/192.168.1.1/192.168.6.1/g' package/base-files/files/bin/config_generate
 sed -i 's/OpenWrt/Redmi-AX6000/g' package/base-files/files/bin/config_generate
 sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
 
@@ -12,28 +12,28 @@ mkdir -p package/base-files/files/etc/uci-defaults
 cat << "EOF" > package/base-files/files/etc/uci-defaults/99-custom-settings
 #!/bin/sh
 
-# 1. 设置后台登录密码 (851129)
-echo -e "851129\n851129" | passwd root
+# 1. 设置后台登录密码 (password)
+echo -e "password\npassword" | passwd root
 
 # 2. 设置 WAN 口为 PPPoE 拨号
-uci set network.wan.proto='pppoe'
-uci set network.wan.username='637143646974'
-uci set network.wan.password='888888'
-uci commit network
+#uci set network.wan.proto='pppoe'
+#uci set network.wan.username='637143646974'
+#uci set network.wan.password='888888'
+#uci commit network
 
 # 3. 设置 WiFi 名称、密码并开启 (2.4G / 5G 分离)
 uci set wireless.radio0.disabled='0'
 uci set wireless.radio1.disabled='0'
 
 # 2.4G 配置
-uci set wireless.default_radio0.ssid='OpenWrt_2.4G'
+uci set wireless.default_radio0.ssid='AX6000'
 uci set wireless.default_radio0.encryption='psk2+ccmp'
-uci set wireless.default_radio0.key='19851129z'
+uci set wireless.default_radio0.key='snoopy123321'
 
 # 5G 配置
-uci set wireless.default_radio1.ssid='OpenWrt_5G'
+uci set wireless.default_radio1.ssid='AX6000_5G'
 uci set wireless.default_radio1.encryption='psk2+ccmp'
-uci set wireless.default_radio1.key='19851129z'
+uci set wireless.default_radio1.key='snoopy123321'
 
 uci commit wireless
 
